@@ -1,6 +1,8 @@
 from gramatica import Producciones,Terminales,NoTerminales, Inicial
 from PS import siguiente
 
+entradasMultiples= False
+
 tabla = {} #Tabla LR(0)
 subconjuntos = []
 kernels = []
@@ -104,30 +106,54 @@ Si el nuevo Kernel contiene el punto al final de la producción, se agrega 'redu
     excepto cuando es la producción extendida, ahí se agrega 'acc'
 """
 def accion(simbolo,subconjunto,nuevoKernel):
+    global entradasMultiples
     if simbolo in NoTerminales:
-        tabla[subconjuntos.index(subconjunto)][simbolo] = kernels.index(nuevoKernel)
+        if simbolo not in tabla[subconjuntos.index(subconjunto)].keys():
+            tabla[subconjuntos.index(subconjunto)][simbolo] = kernels.index(nuevoKernel)
+        else:
+            entradasMultiples = True
+            tabla[subconjuntos.index(subconjunto)][simbolo] = str(tabla[subconjuntos.index(subconjunto)][simbolo])+'/'+str(kernels.index(nuevoKernel))
     elif simbolo in Terminales:
-        tabla[subconjuntos.index(subconjunto)][simbolo] = 'd'+str(kernels.index(nuevoKernel))
-    
+        if simbolo not in tabla[subconjuntos.index(subconjunto)].keys():
+            tabla[subconjuntos.index(subconjunto)][simbolo] = 'd'+str(kernels.index(nuevoKernel))
+        else:
+            tabla[subconjuntos.index(subconjunto)][simbolo] += '/d'+str(kernels.index(nuevoKernel))
+            entradasMultiples = True
+
     for k in nuevoKernel:
         if k.pociPunto == len(k.produccion[1]):
             prod = Producciones.index(k.produccion)
             if k.produccion[1] == Inicial:
                 if kernels.index(nuevoKernel) not in tabla.keys():
                     tabla[kernels.index(nuevoKernel)] = {}
-                tabla[kernels.index(nuevoKernel)]['$'] = 'acc'
+                    tabla[kernels.index(nuevoKernel)]['$'] = 'acc'
+                else:
+                    tabla[kernels.index(nuevoKernel)]['$'] += '/acc'
+                    entradasMultiples = True
             for s in siguiente(k.produccion[0]):
                 if kernels.index(nuevoKernel) not in tabla.keys():
                     tabla[kernels.index(nuevoKernel)] = {}
-                tabla[kernels.index(nuevoKernel)][s] = 'r'+str(prod)
+                if s not in tabla[kernels.index(nuevoKernel)].keys():
+                    tabla[kernels.index(nuevoKernel)][s] = 'r'+str(prod)
+                else:
+                    if tabla[kernels.index(nuevoKernel)][s] != 'r'+str(prod):
+                        tabla[kernels.index(nuevoKernel)][s] += '/r'+str(prod)
+                        entradasMultiples = True
+                
 
     return
 
+"""
+subconjuntosLR0():
+recorre la  lista de kernels para aplicales la cerradura para crear nuvos subconjuntos
+y después aplica la función mover a para crear nuevos kernels
+"""
 def subconjuntosLR0():
     #todos los kernels que se han encontrado
     global kernels
     global subconjuntos
 
+    #agrega la producción extendida como primer kernel  
     elementoInicial = ElementoLR0(Producciones[0],0)
     kernels.append([elementoInicial])
     
@@ -139,7 +165,15 @@ def subconjuntosLR0():
         for s in movimientos:
             mover(subconjuntos[i],s)
         i +=1
+    return
 
+"""
+cerraduraLR0(nucleo):
+recibe: nucleo, una lista de ElementosLR0
+aplica el algoritmo de la cerradura:
+    para cada producción en el subconjunto nuevo donde el punto esté antes de un no terminal,
+    se agregas las producciones del no terminal con el punto al inicio
+"""
 def cerraduraLR0(nucleo):
     cerradura= nucleo.copy()
     produccionesAgregadas =[]
@@ -153,6 +187,21 @@ def cerraduraLR0(nucleo):
     return cerradura
 
 
+"""
+gramLR0():
+Revisa si en la tabla construida existen entradas múltiples
+devueve: True si no existen entradas múltiples,
+         False si existen entradas múltiples y por lo tanto la gramática no es LR(0)
+"""
+def gramLR0():
+    return not entradasMultiples
+
+"""
+imprimeTabla():
+    
+Imprime la tabla LR(0) de forma ordenada con filas y columnas 
+y con la variable tabla, imprime el ínicie de la producción en la "celda" indicada
+"""
 def imprimeTabla():
     for c in columnas:
         print("\t",c,end="")
@@ -166,9 +215,22 @@ def imprimeTabla():
             else:
                 print("",end="\t")
         print("")
-    #print(entradasMultiples)
     return
 
+"""
+pruebaCadenaLR0(cadena):
+recibe: una cadena
+
+Con la tabla contruida se analiza si la cadena de entrada pertenece o no a la gramática
+Se agrega '$' al final de la cadena y se recorre de izquierda a derecha,
+se crea una pila que tiene el subconjunto 0 
+se consulta la pocisión de la tabla que intesecta el elemento más izquierdo de la cadena con el tope de la pila
+si se encuentra un d(desplazamiento), se recorre al siguiente elemento de la cadena y 
+a la pila de agrega el subconjunto que indica el desplazamiento
+si se encuentra un r(reducción), se remueven el numero de elementos de que estan del lado derecho de la producción indicada
+y el siguente paso es consultar M[tope de la pila, lado izq. de la prod]
+cuando se llegue M[,] = acc. ;la cadena es aceptada. 
+"""
 def pruebaCadenaLR0(cadena):
     og = cadena
     cadena+='$'#(i)$
