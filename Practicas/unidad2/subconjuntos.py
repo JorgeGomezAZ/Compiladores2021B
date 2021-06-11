@@ -1,4 +1,4 @@
-from Automata import *
+from Automata import AFD
 """
 subconjuntos(automata): recibe un AFN que calculará su equivaente AFD por el algoritmo de subconjuntos4
 regresa: AFD

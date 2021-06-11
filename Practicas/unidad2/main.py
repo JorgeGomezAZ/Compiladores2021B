@@ -10,7 +10,6 @@
 # se debe de usar el caracter E para representar épsilon
 # los operadores de la expresion regular deben ser:
 #                                             |  (pleca o barra vertica) para la unión
-#                                             .  (punto) para la concatenación
 #                                             *  (asterisco) para la cerradura de kleene
 #                                             () (parentesis) para agrupaciones 
 
@@ -19,11 +18,10 @@
 # EJECUCIÓN: python automatas.py
 
 import re
-import copy
-from Automata import * #* Para usar la clase Automata
-from ER_AFD import *
-from subconjuntos import *
-from minimizacion import *
+from ER_AFD import ex2afd
+from subconjuntos import subconjuntos
+from minimizacion import minimizar
+from Automata import AFN
 
 
 """
@@ -167,6 +165,9 @@ selection=input("\nSelecciona una opción:")
 
 if selection =='1': 
     regex = input("\n\nIngrese una expresión regular, use letras minusculas a-z para caracteres y E para épsilon: ")
+    if not re.search(r'^[a-z*|()E]+$', regex):
+        print("La expresión regular solo debe de contener los caracteres [a-z], *, | , (, ), E")
+        exit(0)
     print("----------------AFN-------------------")
     afn = construyeAutomata(convertPost(regex))
     afn.imprimeA()
@@ -182,6 +183,9 @@ if selection =='1':
 
 elif selection == '2':
     regex = input("\n\nIngrese una expresión regular, use letras minusculas a-z para caracteres y E para épsilon: ")
+    if not re.search(r'^[a-z*|()E]+$', regex):
+        print("La expresión regular solo debe de contener los caracteres [a-z], *, | , (, ), E")
+        exit(0)
     afd = ex2afd(convertPost(regex))
     afd.imprimeA()
     if '1' == input("\nIngrese 1 para minimizar el AFD: "):

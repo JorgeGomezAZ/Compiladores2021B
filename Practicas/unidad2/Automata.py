@@ -15,15 +15,8 @@ class Automata:
         print("Estado inicial: ",self.eInicial)
         print("Estados finales: ",self.eFinal)
 
-
-
-
-
-
 class AFD(Automata):
     pass
-
-
 
 class AFN(Automata):
     def __init__(self,simbolo, n):

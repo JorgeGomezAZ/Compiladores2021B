@@ -1,6 +1,6 @@
 import re
-from Arbol import *
-from Automata import *
+from Arbol import Nodo
+from Automata import AFD
 """
 ex2afd(postfija): recibe una expresión regular en forma postfija
 Pregunta si cada estado tiene trancisiones con simbolo, si sí,

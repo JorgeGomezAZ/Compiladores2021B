@@ -1,4 +1,4 @@
-from Automata import *
+from Automata import AFD
 """
 minimizar(afd): recibe un afd
 regresa un afd equivalente con los estados mínimos por el algoritmo de minimización
