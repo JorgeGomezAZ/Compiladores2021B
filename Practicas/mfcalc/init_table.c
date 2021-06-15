@@ -25,7 +25,7 @@ struct init const funs[] =
 symrec *sym_table;
 
 
-/* Put functions in table. */
+/* Agrega funciones de funs[] a la tabla*/
 void init_table(void)
 {
   for (int i = 0; funs[i].name; i++)

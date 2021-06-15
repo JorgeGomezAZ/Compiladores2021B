@@ -58,15 +58,16 @@ int yylex (void)
 {
   int c = getchar ();
 
-  /* Ignore white space, get first nonwhite character. */
+  /* consume espacios blancos. */
   while (c == ' ' || c == '\t')
     c = getchar ();
-
+  
+  //fin
   if (c == EOF)
     return YYEOF;
 
 
-  /* Char starts a number => parse the number. */
+  /* lee un número que regresa en NUM */
   if (c == '.' || isdigit (c))
     {
       ungetc (c, stdin);
@@ -76,25 +77,23 @@ int yylex (void)
     }
 
 
-  /* Char starts an identifier => read the name. */
+  /* lee el nombre de una variable o función */
   if (isalpha (c))
     {
       static ptrdiff_t bufsize = 0;
       static char *symbuf = 0;
 
       ptrdiff_t i = 0;
-      do
-
-        {
-          /* If buffer is full, make it bigger. */
+      do {
+          /* incrementa el buffer si se llena */
           if (bufsize <= i)
             {
               bufsize = 2 * bufsize + 40;
               symbuf = realloc (symbuf, (size_t) bufsize);
             }
-          /* Add this character to the buffer. */
+          /* agrega caracter al buffer. */
           symbuf[i++] = (char) c;
-          /* Get another character. */
+          /* sigue leyendo */
           c = getchar ();
         }
 
@@ -105,17 +104,17 @@ int yylex (void)
 
 
       symrec *s = getsym (symbuf);
-      if (!s)
-        s = putsym (symbuf, VAR);
-      yylval.VAR = s; /* or yylval.FUN = s. */
+      if (!s) //si la variable no existe, agregar a la tabla de símbolos
+          s = putsym (symbuf, VAR);
+      yylval.VAR = s;
       return s->type;
     }
 
-  /* Any other character is a token by itself. */
+  /* otro tipo de caracter */
   return c;
 }
 
-/* Called by yyparse on error. */
+/* Error. */
 void yyerror (char const *s)
 {
   fprintf (stderr, "%s\n", s);

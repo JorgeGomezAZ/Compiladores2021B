@@ -8,7 +8,7 @@ symrec *putsym (char const *name, int sym_type)
   symrec *res = (symrec *) malloc (sizeof (symrec));
   res->name = strdup(name);
   res->type = sym_type;
-  res->value.var = 0; /* Set value to 0 even if fun. */
+  res->value.var = 0;
   res->next = sym_table;
   sym_table = res;
   return res;
