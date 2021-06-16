@@ -1,0 +1,8 @@
+S->BA
+A->+BA
+A->E
+B->DC
+C->*DC
+C->E
+D->(S)
+D->i
