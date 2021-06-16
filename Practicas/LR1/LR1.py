@@ -35,9 +35,13 @@ def imprimeListaElementos(l):
 """
 extiendeGram():
     Agrega un producción a la gramática donde Inicial' -> Inicial
+    y elimina el simbolo de epsion si existe
 """
 def extiendeGram():
     Producciones.insert(0,[str(Inicial+"'"),Inicial])
+    for p in Producciones:
+        if epsilon in p[1]:
+            p[1].remove(epsilon)
     return
 
 """
@@ -57,9 +61,7 @@ def subconjuntosLR1():
     i = 0
     while i < len(kernels):
         subconjuntos.append(cerraduraLR1(kernels[i]))
-        #imprimeListaElementos(subconjuntos[i])
         movimientos = posiblesMovimientos(subconjuntos[i])
-        #print(movimientos)
         for s in movimientos:
             mover(subconjuntos[i],s)
         i +=1

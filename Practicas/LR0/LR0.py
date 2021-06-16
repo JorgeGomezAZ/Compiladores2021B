@@ -1,4 +1,4 @@
-from auxiliar import Producciones,Terminales,NoTerminales, Inicial, siguiente
+from auxiliar import Producciones,Terminales,NoTerminales, Inicial, siguiente, epsilon
 
 entradasMultiples= False
 
@@ -34,9 +34,13 @@ def imprimeListaElementos(l):
 """
 extiendeGram():
     Agrega un producción a la gramática donde Inicial' -> Inicial
+    y elimina el simbolo de epsion si existe
 """
 def extiendeGram():
     Producciones.insert(0,[str(Inicial+"'"),Inicial])
+    for p in Producciones:
+        if epsilon in p[1]:
+            p[1].remove(epsilon)
     return
 
 """

@@ -43,25 +43,26 @@ class ElementoLR0:
             return NotImplemented
         return self.produccion == o.produccion and self.pociPunto == o.pociPunto
 
-#para debuggear
-def imprimeListaElementos(l):
-    for n in l:
-        print(n.produccion,n.pociPunto,n.simboloAnticipacion)
-
-def imprs(l):
-    for n in l:
-        print(n.produccion,n.pociPunto)
 """
 extiendeGram():
     Agrega un producción a la gramática donde Inicial' -> Inicial
+    y elimina el simbolo de epsion si existe
 """
 def extiendeGram():
     Producciones.insert(0,[str(Inicial+"'"),Inicial])
+    for p in Producciones:
+        if epsilon in p[1]:
+            p[1].remove(epsilon)
     return
 """
+fucionaKernels(kernels):
+modifica la tabla LALR al combinar los subconjuntos que tengan kernels similares
 """
 def fucionaKernels(kernels):
+    global entradasMultiples
     krnlsLR0 = []
+
+    #Obtiene los elementos LR0 de la lista de kernels
     for k in kernels:
         l = []
         for i in k:
@@ -70,13 +71,39 @@ def fucionaKernels(kernels):
                 l.append(e)
         krnlsLR0.append(l)
         
+    #obtiene lista de kernels que comparten los mismos Elementos LR0
     similares = []
     for k in krnlsLR0:
         s = [i for i, x in enumerate(krnlsLR0) if x == k]
         if s not in similares and len(s)>1:
             similares.append(s)
-    print(similares)
+
+    #toma los subconjuntos de los kernels similares y cambia los valores para que 
+    #cada subconjunto tenga un mismo índice
+    for key, value in tabla.items():
+        for k, v in value.items():
+            for sim in similares:
+                for s in sim[1:]:
+                    if str(s) == str(v):
+                        tabla[key][k] = sim[0]
+                    if 'd'+str(s) == v:
+                        tabla[key][k] = 'd'+str(sim[0])
+
+    
+    #fusiona subconjuntos similares donde no existen conflictos y elimina 
+    # los que subconjuntos que se usan para fucionar, excepto el primero 
+    for sim in similares:
+        for s in sim[1:]:
+            for key, value in tabla[s].items():
+                if key in tabla[sim[0]].keys():
+                    if tabla[sim[0]][key] != value:
+                        tabla[sim[0]][key] += "/"+value
+                        entradasMultiples = True
+                tabla[sim[0]][key] = value
+            del tabla[s]
+            
     return
+
 """
 subconjuntosLR1():
 recorre la  lista de kernels para aplicales la cerradura para crear nuvos subconjuntos
@@ -100,9 +127,8 @@ def subconjuntosLR1():
         for s in movimientos:
             mover(subconjuntos[i],s)
         i +=1
-    fucionaKernels(kernels)
-    for key, value in tabla.items():
-        print(key, ' : ', value)
+    #fucionaKernels(kernels)
+    
     return
 
 """
@@ -240,7 +266,7 @@ def cerraduraLR1(nucleo):
 """
 imprimeTabla():
     
-Imprime la tabla LR(1) de forma ordenada con filas y columnas 
+Imprime la tabla LALR de forma ordenada con filas y columnas 
 y con la variable tabla, imprime el ínicie de la producción en la "celda" indicada
 """
 def imprimeTabla():
@@ -248,7 +274,7 @@ def imprimeTabla():
         print("\t",c,end="")
     print("")
 
-    for i,f in enumerate(kernels):
+    for i,f in sorted(tabla.items()):
         print(i,end="\t")
         for t in columnas:
             if t in tabla[i].keys():
@@ -259,7 +285,7 @@ def imprimeTabla():
     return
 
 """
-pruebaCadenaLR0(cadena):
+pruebaCadenaLALR(cadena):
 recibe: una cadena
 
 Con la tabla contruida se analiza si la cadena de entrada pertenece o no a la gramática
@@ -272,7 +298,7 @@ si se encuentra un r(reducción), se remueven el numero de elementos de que esta
 y el siguente paso es consultar M[tope de la pila, lado izq. de la prod]
 cuando se llegue M[,] = acc. ;la cadena es aceptada. 
 """
-def pruebaCadenaLR1(cadena):
+def pruebaCadenaLALR(cadena):
     og = cadena
     cadena+='$'
     cadena = [c for c in cadena]
@@ -308,9 +334,9 @@ print("Simbolo inicial: ",Inicial,"\n\n")
 
 
 subconjuntosLR1()
-# imprimeTabla()
-# if not entradasMultiples:
-#     prueba = input("\n\nIngrese una cadena para probar si pertenece al lenguaje formado por la gramática:\n")
-#     pruebaCadenaLR1(prueba)
-# else:
-#     print("\nLa gramática no es LR(1), no se pueden probar cadenas")
+imprimeTabla()
+if not entradasMultiples:
+    prueba = input("\n\nIngrese una cadena para probar si pertenece al lenguaje formado por la gramática:\n")
+    pruebaCadenaLALR(prueba)
+else:
+    print("\nLa gramática no es LALR, no se pueden probar cadenas")
