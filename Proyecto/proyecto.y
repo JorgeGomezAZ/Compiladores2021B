@@ -1,229 +1,94 @@
 %{
-#  include <stdio.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+
+	extern FILE *yyin;;
+	FILE * f1;
+
+	//#include "proy.h"
+	//int main(){int a;int b;char c;a=5;b = a*2;}
+	struct simbolo{
+        char *nombre;
+        int val;
+        short tipo;
+		unsigned char fn;
+		unsigned short registro;
+    };
+    
+	struct simbolo tabla_de_simbolos[256];
+    int indice;
+	unsigned short regActual;
+	void yyerror (char const *s);
+
+	void AgregaVar(short tipo, struct simbolo *var);
+	int VarExistente(char *var);
+	int buscaPorNom(char *nombre);
+	void AgregaValI(char *nombre,int val);
+	int AgregaConstI(int val);
+	int modificaReg(int r1, int r2, char op);
+	int buscaPorReg(int r);
+	int yylex();
 %}
-%token IDENTIFIER CONSTANT STRING_LITERAL
-%token TYPE_NAME
+%union {
+  int d;
+  char *cad;
+  struct simbolo *s;
+  short tipo;
+}
+%token <d>NUMBER
+%token <cad> IDENTIFIER STRING_LITERAL
 
-%token CHAR INT CONST VOID EQ_OP
-
+%token<tipo> CHAR INT VOID CONSTANT
+%token EQ_OP
 %token IF WHILE RETURN
 
+%type <tipo> type_specifier declaration_specifiers
+%type <cad> direct_declarator  declarator 
+%type <s> init_declarator_list init_declarator
+%type <d> primary_expression postfix_expression unary_expression multiplicative_expression additive_expression
+%type <d> relational_expression equality_expression assignment_expression
 %start translation_unit
+
 %%
-
-primary_expression
-	: IDENTIFIER 				
-	| CONSTANT					
-	| STRING_LITERAL			
-	| '(' expression ')'
+translation_unit
+	: external_declaration	{printf("termina el programa\n");}
+	| translation_unit external_declaration
 	;
 
-postfix_expression
-	: primary_expression
-	| postfix_expression '(' argument_expression_list ')'
+external_declaration
+	: function_definition		{//printf("agrega funcion %s a la tala de simbolos\n",$1);
+								}
+	| declaration
 	;
 
-argument_expression_list
-	: assignment_expression
-	| argument_expression_list ',' assignment_expression
-	;
-
-unary_expression
-	: postfix_expression
-	| unary_operator unary_expression
-	;
-
-unary_operator
-	: '&'
-	| '-'
-	;
-
-
-multiplicative_expression
-	: unary_expression
-	| multiplicative_expression '*' unary_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Multiplicar ambos valores y guardar el resultado \n" );
-									printf("4. Regresar el resultado\n" );
-									}
-	| multiplicative_expression '/' unary_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Dividir ambos valores y guardar el resultado \n" );
-									printf("4. Regresar el resultado\n" );
-									}
-	;
-
-additive_expression
-	: multiplicative_expression
-	| additive_expression '+' multiplicative_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Sumar ambos valores y guardar el resultado \n" );
-									printf("4. Regresar el resultado\n" );
-									}
-	| additive_expression '-' multiplicative_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Restar ambos valores y guardar el resultado \n" );
-									printf("4. Regresar el resultado\n" );
-									}
-	;
-
-relational_expression
-	: additive_expression
-	| relational_expression '<' relational_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Comparar el valor de la izquierda es menor al de la derecha \n" );
-									printf("4. Regresar el resultado, 1 si cumple, 0 si no\n" );
-									}
-	| relational_expression '>' relational_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Comparar el valor de la izquierda es mayor al de la derecha \n" );
-									printf("4. Regresar el resultado, 1 si cumple, 0 si no\n" );
-									}
-	;
-
-equality_expression
-	: relational_expression
-	| equality_expression EQ_OP relational_expression		{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la primer expresión\n");
-									printf("2. Calcular/obtener el valor de la segunda expresión\n");
-									printf("3. Comparar los valores para ver si son iguales\n" );
-									printf("4. Regresar el resultado, 1 si cumple, 0 si no\n" );
-									}
-	;
-
-assignment_expression
-	: equality_expression  				
-	| unary_expression assignment_operator assignment_expression 	{
-									// prototipo de regla semántica:
-									printf("1. Calcular/obtener el valor de la expresión\n");
-									printf("2. Obtener la dirección de VARIABLE.\n");
-									printf("3. Copiar el valor de la expresioń a la dirección de la VARIABLE\n" );
-									}
-	;
-
-assignment_operator
-	: '='
-	;
-
-expression
-	: assignment_expression
-	| expression ',' assignment_expression
-	;
-
-constant_expression
-	: equality_expression
-	;
-
-declaration
-	: declaration_specifiers ';'
-	| declaration_specifiers init_declarator_list ';'
-	;
+function_definition
+	: declaration_specifiers declarator declaration_list compound_statement
+	| declaration_specifiers declarator compound_statement {}
+    ;
 
 declaration_specifiers
-	: type_specifier
-	| type_specifier declaration_specifiers
-	| type_qualifier
-	| type_qualifier declaration_specifiers
-	;
-
-init_declarator_list
-	: init_declarator
-	| init_declarator_list ',' init_declarator
-	;
-
-init_declarator
-	: declarator
-	| declarator '=' initializer
+	: type_specifier	{$$ = $1;}
 	;
 
 type_specifier
-	: VOID
-	| CHAR
-	| INT
+	: VOID	{ $$ = $1;}
+	| CHAR	{ $$ = $1;}
+	| INT 	{ $$ = $1;}
 	;
-
-
-type_qualifier
-	: CONST
-	;
-
+                                                        
 declarator
-	: direct_declarator
+	: direct_declarator {$$ = $1;}
 	;
 
 direct_declarator
-	: IDENTIFIER
-	| '(' declarator ')'
-	| direct_declarator '[' constant_expression ']'
-	| direct_declarator '[' ']'
-	| direct_declarator '(' parameter_type_list ')'
-	| direct_declarator '(' identifier_list ')'
-	| direct_declarator '(' ')'
+	: IDENTIFIER 		{$$=$1;}
+	| direct_declarator '(' ')'	{$$ = $1;}
 	;
-
-parameter_type_list
-	: parameter_list
-	;
-
-parameter_list
-	: parameter_declaration
-	| parameter_list ',' parameter_declaration
-	;
-
-parameter_declaration
-	: declaration_specifiers declarator
-	| declaration_specifiers
-	;
-
-identifier_list
-	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
-	;
-
-
-initializer
-	: assignment_expression
-	| '{' initializer_list '}'
-	| '{' initializer_list ',' '}'
-	;
-
-initializer_list
-	: initializer
-	| initializer_list ',' initializer
-	;
-
-statement
-	: compound_statement
-	| expression_statement
-	| selection_statement
-	| iteration_statement
-	| jump_statement
-	;
-
 
 compound_statement
-	: '{' '}'
-	| '{' statement_list '}'
-	| '{' declaration_list '}'
+	: '{' declaration_list '}' {}
 	| '{' declaration_list statement_list '}'
-	;
-
-declaration_list
-	: declaration
-	| declaration_list declaration
 	;
 
 statement_list
@@ -231,52 +96,218 @@ statement_list
 	| statement_list statement
 	;
 
+statement
+	: compound_statement
+	| expression_statement
+	;
 expression_statement
 	: ';'
 	| expression ';'
 	;
 
-selection_statement
-	: IF '(' expression ')' statement
+expression
+	: assignment_expression {}
 	;
 
-iteration_statement
-	: WHILE '(' expression ')' statement
-	;
-	
-	jump_statement
-	: RETURN ';'
-	| RETURN expression ';'
+declaration_list
+	: declaration
+	| declaration_list declaration
 	;
 
-translation_unit
-	: external_declaration
-	| translation_unit external_declaration
+declaration
+	: declaration_specifiers ';'
+	| declaration_specifiers init_declarator_list ';'{AgregaVar($1,$2);
+											fprintf(f1,"const v%d, 0x%x\n",$2->registro,$2->val);
+													
+	}
 	;
 
-external_declaration
-	: function_definition
-	| declaration
+init_declarator_list
+	: init_declarator	{$$ = $1;
+		//printf("%s\n",$1->nombre);
+	}
+    ;
+
+init_declarator
+	: IDENTIFIER					{$$->nombre = strdup($1);}
+	| IDENTIFIER '=' assignment_expression	{$$->nombre = strdup($1);
+											$$->val = tabla_de_simbolos[buscaPorReg($3)].val;
+											}
 	;
 
-function_definition
-	: declaration_specifiers declarator declaration_list compound_statement
-	| declaration_specifiers declarator compound_statement
-	| declarator declaration_list compound_statement
-	| declarator compound_statement
+
+
+primary_expression
+	: IDENTIFIER	{
+					$$ = buscaPorNom($1);
+	}
+	| NUMBER		{//usa constante entera
+		$$ = AgregaConstI($1);
+					
+	//| STRING_LITERAL			
+	}			
+
 	;
 
+postfix_expression
+	: primary_expression	{$$ = $1;}
+	;
+unary_expression
+	: postfix_expression	{$$ = $1;}
+	| '-' unary_expression	{$$ = modificaReg($2, $2, '!');}
+	;
+
+multiplicative_expression
+	: unary_expression		{$$ = $1;}
+	| multiplicative_expression '*' unary_expression	{$$ = modificaReg($1, $3, '*');}	
+	| multiplicative_expression '/' unary_expression	{$$ = modificaReg($1, $3, '/');}	
+	;
+
+additive_expression
+	: multiplicative_expression	{$$ = $1;}
+	| additive_expression '+' multiplicative_expression		{$$ = modificaReg($1, $3, '+');}	
+	| additive_expression '-' multiplicative_expression		{$$ = modificaReg($1, $3, '-');}	
+	;
+
+relational_expression
+	: additive_expression	{$$ = $1;}
+	| relational_expression '<' relational_expression		{}
+	| relational_expression '>' relational_expression		{}
+	;
+
+equality_expression
+	: relational_expression	{$$ = $1;}
+	| equality_expression EQ_OP relational_expression		{}
+	;
+
+assignment_expression
+	: equality_expression	{$$ = $1;}	
+	| IDENTIFIER '=' assignment_expression 	{ AgregaValI($1,tabla_de_simbolos[buscaPorReg($3)].val);
+											
+
+	}
+	;
 %%
-
-extern char yytext[];
-extern int column;
-
-main()
+int main(int argc, char *argv[])
 {
-  yyparse();
+  	yyin = fopen(argv[1], "r");
+	f1=fopen("codigoIntermedio.txt","w");
+	
+    indice = 0;
+	regActual = 0;
+   	yyparse();
+	for (int i = 0;i!= indice;i++){
+	  	printf("Nombre: %s\tTipo: %d\tValor: %d\t Reg:%d\n",tabla_de_simbolos[i].nombre,tabla_de_simbolos[i].tipo,tabla_de_simbolos[i].val,tabla_de_simbolos[i].registro);
+	}
+	fclose(yyin);
+	fclose(f1);
+    return 0;
+}
+void yyerror (char const *s) {
+   	fprintf (stderr, "%s\n", s);
+	exit(1);
 }
 
-yyerror(char *s)
-{
-  fprintf(stderr, "error: %s\n", s);
+void AgregaVar(short tipo, struct simbolo *var){
+	if (VarExistente(var->nombre)!=-1){
+		yyerror("variable previamente declarada");
+	}
+	var->tipo = tipo;
+	var->registro = regActual;
+	tabla_de_simbolos[indice] = *var;
+	
+	fprintf(f1,"const-wide/32 v%x, 0x0\n",var->registro);
+
+	regActual += 2;
+	indice++;
+}
+
+int VarExistente(char *var){
+	for (int i = 0;i!= indice;i++){
+		if(strcmp(var,tabla_de_simbolos[i].nombre)==0){
+			return i;
+		}
+	}
+	return -1;
+}
+int buscaPorNom(char *nombre){
+	int inx = VarExistente(nombre);
+	if(inx == -1)
+		yyerror("variable no declarada");
+	else
+		return tabla_de_simbolos[inx].registro;
+}
+
+void AgregaValI(char *nombre,int val){
+	int inx = VarExistente(nombre);
+	if(inx ==-1)
+		yyerror("variable no declarada");
+	else{
+		tabla_de_simbolos[inx].val = val;
+		fprintf(f1,"move v%x, v%x\n",tabla_de_simbolos[inx].registro,val);
+	}
+}
+
+int AgregaConstI(int val){
+	struct simbolo *var;
+	var->tipo = CONSTANT;
+	var->registro = regActual;
+
+	var->val = val;
+	var->nombre = "const";
+	fprintf(f1,"const-wide/32 v%x, 0x%x\n",var->registro,val);
+	tabla_de_simbolos[indice] = *var;
+	int i = indice;
+
+	indice++;
+	regActual += 2;
+	
+	return var->registro;
+}
+int buscaPorReg(int r){
+	int inx;
+	for (int i = 0;i!= indice;i++){
+		if(r == tabla_de_simbolos[i].registro){
+			return i;
+		}
+	}
+	return -1;
+}
+
+int modificaReg(int r1, int r2, char op){
+	int i1 = buscaPorReg(r1);
+	int i2 = buscaPorReg(r2);
+	int res;
+	switch (op) {
+    case '+':
+        res = tabla_de_simbolos[i1].val + tabla_de_simbolos[i2].val;
+        break;
+    case '-':
+        res = tabla_de_simbolos[i1].val - tabla_de_simbolos[i2].val;
+        break;
+    case '*':
+        res = tabla_de_simbolos[i1].val * tabla_de_simbolos[i2].val;
+        break;
+    case '/':
+        res = tabla_de_simbolos[i1].val / tabla_de_simbolos[i2].val;
+        break;
+	case '!':
+        res = tabla_de_simbolos[i1].val * -1;
+        break;
+    default:
+        yyerror("error\n");
+	
+    }
+	struct simbolo *var;
+	var->tipo = CONSTANT;
+	var->registro = regActual;
+	var->val = res;
+	var->nombre = "const";
+	fprintf(f1,"const-wide/32 v%x, 0x%x\n",var->registro,res);
+	tabla_de_simbolos[indice] = *var;
+	int i = indice;
+
+	indice++;
+	regActual += 2;
+	return regActual-2;
 }

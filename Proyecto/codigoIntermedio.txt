@@ -1,0 +1,12 @@
+const-wide/32 v0, 0x0
+const v0, 0x0
+const-wide/32 v2, 0x0
+const v2, 0x0
+const-wide/32 v4, 0x99
+const-wide/32 v6, 0x0
+const v6, 0x99
+const-wide/32 v8, 0x5
+move v0, v5
+const-wide/32 va, 0x2
+const-wide/32 vc, 0xa
+move v2, va

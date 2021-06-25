@@ -1,71 +1,48 @@
-D			[0-9]
-L			[a-zA-Z_]
-E			[Ee][+-]?{D}+
-
+%option noyywrap
 %{
-#include <stdio.h>
-#include "proyecto.tab.h"
-
-void count();
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include "proyecto.tab.h"
+	//#include "proy.h"
 %}
+%%
+"char"			{ yylval.tipo = CHAR;return(CHAR); }
+"if"			{ return(IF); }
+"int"			{ yylval.tipo = INT;return(INT); }
+"return"		{ return(RETURN); }
+"void"			{ yylval.tipo = VOID;return(VOID); }
+"while"			{ return(WHILE); }
+"=="			{ return(EQ_OP); }
+
+[a-zA-Z_]([a-zA-Z_]|[0-9])*		{ yylval.cad=strdup(yytext);return(IDENTIFIER); }
+
+[0-9]+"."[0-9]* |
+"."?[0-9]+		    { yylval.d = atoi(yytext); return (NUMBER); }
+
+L?\"(\\.|[^\\"])*\"	{ return(STRING_LITERAL); }
+
+";"			{ return(';'); }
+("{")		{ return('{'); }
+("}")		{ return('}'); }
+","			{ return(','); }
+"="			{ return('='); }
+"("			{ return('('); }
+")"			{ return(')'); }
+("[")		{ return('['); }
+("]")		{ return(']'); }
+"."			{ return('.'); }
+"&"			{ return('&'); }
+"-"			{ return('-'); }
+"+"			{ return('+'); }
+"*"			{ return('*'); }
+"/"			{ return('/'); }
+"<"			{ return('<'); }
+">"			{ return('>'); }
+
+[ \t\v\n\f]		{ }
+.			{ }
 
 %%
-
-"char"			{ count(); return(CHAR); }
-"const"			{ count(); return(CONST); }
-"if"			{ count(); return(IF); }
-"int"			{ count(); return(INT); }
-"return"		{ count(); return(RETURN); }
-"void"			{ count(); return(VOID); }
-"while"			{ count(); return(WHILE); }
-"=="			{ count(); return(EQ_OP); }
-
-{L}({L}|{D})*		{ count(); return(IDENTIFIER); }
-
-L?'(\\.|[^\\'])+'	{ count(); return(CONSTANT); }
-
-{D}+{E}?		{ count(); return(CONSTANT); }
-
-L?\"(\\.|[^\\"])*\"	{ count(); return(STRING_LITERAL); }
-
-";"			{ count(); return(';'); }
-("{")		{ count(); return('{'); }
-("}")		{ count(); return('}'); }
-","			{ count(); return(','); }
-"="			{ count(); return('='); }
-"("			{ count(); return('('); }
-")"			{ count(); return(')'); }
-("[")		{ count(); return('['); }
-("]")		{ count(); return(']'); }
-"."			{ count(); return('.'); }
-"&"			{ count(); return('&'); }
-"-"			{ count(); return('-'); }
-"+"			{ count(); return('+'); }
-"*"			{ count(); return('*'); }
-"/"			{ count(); return('/'); }
-"<"			{ count(); return('<'); }
-">"			{ count(); return('>'); }
-
-[ \t\v\n\f]		{ count(); }
-.			{ yyerror("Mystery character %c\n", *yytext);  }
-
-%%
-
-int column = 0;
-
-void count()
-{
-	int i;
-
-	for (i = 0; yytext[i] != '\0'; i++)
-		if (yytext[i] == '\n')
-			column = 0;
-		else if (yytext[i] == '\t')
-			column += 8 - (column % 8);
-		else
-			column++;
-
-	//printf("valid token");
-}
-
-
+//yyerror("Mystery character %c\n", *yytext);  }
+//yylval->d = atof(yytext);
+//printf("%s\n",yytext);
